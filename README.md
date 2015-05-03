@@ -1,12 +1,10 @@
-LocationInfo
+WikipediaPlaces
 ========
 
-LocationInfo is a ruby gem that extracts information about a particular place and makes it available in multiple different formats. Currently the following features are available:
+WikipediaPlaces is a ruby gem that extracts information about a particular place
+from Wikipedia and makes the information available in an easy-to-use API.
 
-* Wikipedia introduction text & all images associated with the page using the [Wikipedia/MediaWiki API](https://en.wikipedia.org/w/api.php)
-* Geocoding information as provided by [geocoder](https://github.com/alexreisner/geocoder)
-* Other images from [Flickr](http://flickr.com)
-
+All information is extracted using the [Wikipedia/MediaWiki API](https://en.wikipedia.org/w/api.php).
 
 
 Compatibility
@@ -20,13 +18,13 @@ Compatibility
 Installation
 ------------
 
-Install LocationInfo like any other Ruby gem:
+Install WikipediaPlaces like any other Ruby gem:
 
-    gem install location_info
+    gem install wikipedia_places
 
 Or, if you're using Rails/Bundler, add this to your Gemfile:
 
-    gem 'location_info'
+    gem 'wikipedia_places'
 
 and run at the command prompt:
 
@@ -42,7 +40,7 @@ More examples can be found in the examples directory.
 Tests
 ------------
 
-LocationInfo comes with a test suite (just run rake test).
+WikipediaPlaces comes with a test suite (just run rake test).
 
 
 License
