@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
 require 'date'
-require 'wikipedia_places/version'
+require 'wikipedia_wrapper/version'
 
 Gem::Specification.new do |s|
-  s.name        = 'wikipedia_places'
-  s.version     = WikipediaPlaces::VERSION
+  s.name        = 'wikipedia_wrapper'
+  s.version     = WikipediaWrapper::VERSION
   s.platform    = Gem::Platform::RUBY
   s.date        = Date.today.to_s
-  s.summary     = "WikipediaPlaces retrieves information about a place from Wikipedia"
+  s.summary     = "WikipediaWrapper retrieves information about a place from Wikipedia"
   s.description = "A simple hello world gem"
   s.authors     = ["Sybil Ehrensberger"]
   s.email       = 'contact@sybil-ehrensberger.com'

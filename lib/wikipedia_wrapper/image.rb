@@ -1,20 +1,23 @@
-module WikipediaPlaces
+module WikipediaWrapper
 
   class WikiImage
 
-    attr_accessor :small, :normal
+    attr_accessor :error, :small, :normal
 
     def initialize(raw_info)
 
-      if !raw_info.key?('imageinfo') || raw_info['imageinfo'].length < 1
-        puts "Unknown format for imageinfo: #{raw_info}"
-        @small = nil
-        @normal = nil
+      @error = nil
+      @small = nil
+      @normal = nil
+
+      if !raw_info.key?('imageinfo') || raw_info['imageinfo'].length != 1
+        @error = "Unknown format for imageinfo: #{raw_info}"
+        puts @error
         return
       end
 
       data = {
-        'name': (raw_info.key? 'title') ? raw_info['title'] : 'No name',
+        'name': (raw_info.key? 'title') ? raw_info['title'].sub('File:', '') : 'No name',
         'mime': raw_info['imageinfo'][0]['mime'],
       }
 
@@ -23,8 +26,6 @@ module WikipediaPlaces
                                  raw_info['imageinfo'][0]['thumbwidth'].to_i,
                                  raw_info['imageinfo'][0]['thumbheight'].to_i,
                                  data)
-      else
-        @small = nil
       end
 
       @normal = Image.new(raw_info['imageinfo'][0]['url'],

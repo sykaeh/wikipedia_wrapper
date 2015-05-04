@@ -1,11 +1,11 @@
-require 'wikipedia_places/image'
-require 'wikipedia_places/fetcher'
+require 'wikipedia_wrapper/image'
+require 'wikipedia_wrapper/fetcher'
 
-module WikipediaPlaces
+module WikipediaWrapper
 
   @@configuration = {
     :lang => 'en',
-    :user_agent => 'WikipediaPlaces/0.1 (http://sykaeh.github.com/wikipedia_places/; wikipedia_places@sybil-ehrensberger.com) Ruby/2.2.1', :img_width => 200,
+    :user_agent => 'WikipediaWrapper/0.1 (http://sykaeh.github.com/wikipedia_wrapper/; wikipedia_wrapper@sybil-ehrensberger.com) Ruby/2.2.1', :img_width => 200,
     :img_height => nil
   }
 
@@ -26,11 +26,11 @@ module WikipediaPlaces
 
   # class functions
 
-  def self.find(city, country)
+  def self.find(search_term)
     f = Fetcher.new(@@configuration)
 
-    wiki_page = f.page("#{city}")
-    wiki_page.images = f.images(wiki_page.image_filenames)
+    wiki_page = f.page(search_term)
+    wiki_page.images = f.images(wiki_page.image_filenames).map { |img| img.error.nil? ? img : nil }.compact
 
     return wiki_page
 

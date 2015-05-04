@@ -1,4 +1,4 @@
-module WikipediaPlaces
+module WikipediaWrapper
 
   class ImageWhitelist
       # FIXME: whitelist common images
@@ -9,11 +9,11 @@ module WikipediaPlaces
                    'File:Edit-clear.svg', 'File:East.svg', 'File:North.svg',
                    'File:Compass rose pale.svg', 'File:Portal-puzzle.svg',
                    'File:Ambox important.svg', 'File:Disambig gray.svg',
-                   'File:Wiktionary-logo-en.svg']
+                   'File:Wiktionary-logo-en.svg', 'File:Ambox current red.svg']
 
 
-      @@partial = ['File:Arms of' , 'File:Blason de', 'File:Flag of', 'File:BSicon', 'icon',
-                   'File:Coat of arms']
+      @@partial = ['arms', 'blason','icon', 'wappen',
+                   'bandera', 'flag', 'map', 'arms', 'karte', 'coa']
 
 
     def self.is_whitelisted? (filename)
@@ -23,7 +23,7 @@ module WikipediaPlaces
 
       else
         @@partial.each do |p|
-          if filename.include? p
+          if filename.downcase.include? p
             return true
           end
         end

@@ -1,12 +1,12 @@
 require 'minitest/autorun'
-require 'wikipedia_places/Fetcher'
+require 'wikipedia_wrapper/Fetcher'
 
 class FetcherTest < Minitest::Test
 
 
   def test_fetcher_config
 
-    w = WikipediaPlaces::Fetcher.new({:lang => 'de', :user_agent => 'my custom user agent',
+    w = WikipediaWrapper::Fetcher.new({:lang => 'de', :user_agent => 'my custom user agent',
       :img_width => 700, :img_height => 200})
 
     assert_equal w.language, 'de'

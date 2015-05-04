@@ -1,4 +1,4 @@
-module WikipediaPlaces
+module WikipediaWrapper
 
   class Page
 
@@ -14,7 +14,7 @@ module WikipediaPlaces
       @revision_time = page_info['touched'] #FIXME: parse in to date & time, format: 2015-04-23T07:20:47Z
       @revision_id = page_info['lastrevid']
       @url = page_info['fullurl']
-      @extract = page_info['extract']
+      @extract = (page_info.key? 'extract') ? page_info['extract'] : ''
 
       @images = []
 

@@ -1,11 +1,11 @@
 require 'uri'
 require 'open-uri'
 require 'json'
-require 'wikipedia_places/image'
-require 'wikipedia_places/page'
-require 'wikipedia_places/image_whitelist'
+require 'wikipedia_wrapper/image'
+require 'wikipedia_wrapper/page'
+require 'wikipedia_wrapper/image_whitelist'
 
-module WikipediaPlaces
+module WikipediaWrapper
 
   class Fetcher
 
@@ -23,6 +23,9 @@ module WikipediaPlaces
 
     end
 
+
+    # Deal with disambig sites
+    # Possibly use https://www.mediawiki.org/wiki/API:Opensearch
     def page(search_term)
 
       url = "#{@api_url}action=query&prop=revisions|info|extracts|images&" +
