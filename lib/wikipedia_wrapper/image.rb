@@ -21,16 +21,19 @@ module WikipediaWrapper
         'mime': raw_info['imageinfo'][0]['mime'],
       }
 
+      @normal = Image.new(raw_info['imageinfo'][0]['url'],
+                         raw_info['imageinfo'][0]['width'].to_i,
+                         raw_info['imageinfo'][0]['height'].to_i, data)
+
+
       if raw_info['imageinfo'][0].key? ('thumburl')
         @small = Image.new(raw_info['imageinfo'][0]['thumburl'],
                                  raw_info['imageinfo'][0]['thumbwidth'].to_i,
                                  raw_info['imageinfo'][0]['thumbheight'].to_i,
                                  data)
+      else
+        @small = @normal
       end
-
-      @normal = Image.new(raw_info['imageinfo'][0]['url'],
-                         raw_info['imageinfo'][0]['width'].to_i,
-                         raw_info['imageinfo'][0]['height'].to_i, data)
 
     end
 

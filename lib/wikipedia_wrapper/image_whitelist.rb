@@ -9,11 +9,13 @@ module WikipediaWrapper
                    'File:Edit-clear.svg', 'File:East.svg', 'File:North.svg',
                    'File:Compass rose pale.svg', 'File:Portal-puzzle.svg',
                    'File:Ambox important.svg', 'File:Disambig gray.svg',
-                   'File:Wiktionary-logo-en.svg', 'File:Ambox current red.svg']
+                   'File:Wiktionary-logo-en.svg', 'File:Ambox current red.svg',
+                   'File:Decrease2.svg']
 
 
-      @@partial = ['arms', 'blason','icon', 'wappen',
-                   'bandera', 'flag', 'map', 'arms', 'karte', 'coa']
+      # TODO: too exclusive with .svg?
+      @@partial = ['arms', 'blason','icon', 'wappen', '.ogg', 'projection',
+                   'bandera', 'flag', 'map', 'arms', 'karte', 'coa', '.svg']
 
 
     def self.is_whitelisted? (filename)

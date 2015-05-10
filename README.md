@@ -1,10 +1,12 @@
 WikipediaWrapper
 ========
 
-WikipediaWrapper is a ruby gem that extracts information 
+WikipediaWrapper is a ruby gem that extracts information
 from Wikipedia and makes the information available in an easy-to-use API.
 
 All information is extracted using the [Wikipedia/MediaWiki API](https://en.wikipedia.org/w/api.php).
+
+This gem is inspired by the [Python wrapper for the Wikipedia API](https://github.com/goldsmith/Wikipedia) by [Jonathan Goldsmith](https://github.com/goldsmith).
 
 
 Installation

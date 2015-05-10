@@ -17,4 +17,6 @@ Gem::Specification.new do |s|
   s.homepage    =
     'http://sybil-ehrensberger.com'
   s.license       = 'MIT'
+
+  s.add_runtime_dependency("cache", '~> 0.4')
 end

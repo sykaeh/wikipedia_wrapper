@@ -30,6 +30,10 @@ module WikipediaWrapper
 
     end
 
+    def to_s
+      # TODO: Implement!
+    end
+
   end
 
 end
