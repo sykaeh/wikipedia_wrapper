@@ -1,19 +1,18 @@
+require 'wikipedia_wrapper/exception'
+
 module WikipediaWrapper
 
   class WikiImage
 
-    attr_accessor :error, :small, :normal
+    attr_accessor :small, :normal
 
     def initialize(raw_info)
 
-      @error = nil
       @small = nil
       @normal = nil
 
       if !raw_info.key?('imageinfo') || raw_info['imageinfo'].length != 1
-        @error = "Unknown format for imageinfo: #{raw_info}"
-        puts @error
-        return
+        raise WikipediaWrapper::FormatError.new('WikiImage initialize', "Unknown format for imageinfo: #{raw_info}")
       end
 
       data = {

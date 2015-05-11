@@ -1,6 +1,6 @@
 module WikipediaWrapper
 
-  class ImageWhitelist
+  class ImageWhitelist # TODO: Turn this into YAML based list
       # FIXME: whitelist common images
       @@complete = ['File:Commons-logo.svg', 'File:Boxed East arrow.svg',
                    'File:A coloured voting box.svg', 'File:People icon.svg',

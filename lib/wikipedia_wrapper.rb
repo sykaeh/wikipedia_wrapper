@@ -4,9 +4,8 @@ require 'json'
 require 'cache'
 require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/configuration'
-require 'wikipedia_wrapper/image'
 require 'wikipedia_wrapper/page'
-require 'wikipedia_wrapper/image_whitelist'
+
 
 module WikipediaWrapper
 
@@ -16,6 +15,13 @@ module WikipediaWrapper
     @config ||= Configuration.new
   end
 
+  # Set up configuration options:
+  #
+  # WikipediaWrapper.configure do |config|
+  #   config.api_key = 'http://en.wikipedia.org/w/api.php'
+  #   config.user_agent = 'WikipediaWrapper/0.0.1 (http://sykaeh.github.com/wikipedia_wrapper/) Ruby/2.2.1'
+  #   config.default_ttl = 604800
+  # end
   def configure
     @config ||= Configuration.new
     yield(config)
@@ -35,125 +41,113 @@ module WikipediaWrapper
   end
 
 
-  def basic_page(search_term)
+  # Convenience function to retrieve a Wikipedia page
+  #
+  # @param term [String] the title of the page
+  # @param auto_suggest [Boolean] whether the search and autocorrect suggestion should be used to find a valid term (default: true)
+  # @param redirect [Boolean] whether redirects should be followed automatically (default: true)
+  # @return [WikipediaWrapper::Page] the wiki page
+  def page(term, auto_suggest: true, redirect: true)
+
+    if auto_suggest
+      term = check_page(term)
+    end
+
+    return WikipediaWrapper::Page.new(term, redirect)
 
   end
 
-  # Deal with disambig sites
-  # Possibly use https://www.mediawiki.org/wiki/API:Opensearch
-  def page(search_term)
-
-    query_parameters = {
-      'prop': 'revisions|info|extracts|images',
-      'titles': search_term,
-      'redirects': '',
-      'rvprop': 'content',
-      'inprop': 'url',
-      'exintro': '',
-    }
-
-    raw_results = fetch(query_parameters)
-
-    if raw_results['query']['pages'].length > 1
-      raise MultiplePagesError
-    end
-
-    if raw_results['query']['pages'].length == 0
-      raise PageError
-    end
-
-    page = nil
-    raw_results['query']['pages'].each do |key, value|
-      page = Page.new(value)
-    end
-
-    # FIXME: attach images
-    page.images = images(page.image_filenames).map { |img| img.error.nil? ? img : nil }.compact
-
-    return page
-
-  end
-
-  # Plain text or basic HTML summary of the page.
+  # Plain text or basic HTML summary of the page. Redirects are always followed
+  # automatically
   #
   # @note This is a convenience wrapper - auto_suggest and redirect are enabled by default
   #
+  # @param title [String] the title of the page
+  # @param html [Boolean] if true, return basic HTML instead of plain text
   # @param sentences [Integer] if set, return the first `sentences` sentences (can be no greater than 10).
   # @param chars [Integer] if set, return only the first `chars` characters (actual text returned may be slightly longer).
-  # @param auto_suggest [Boolean] let Wikipedia find a valid page title for the query
-  # @param redirect [Boolean] allow redirection without raising RedirectError
-  def summary(title, sentences: 0, chars: 0, auto_suggest: true, redirect: true)
+  # @return [String] the plain text or basic HTML summary of that page
+  def summary(term, html: false, sentences: 0, chars: 0)
 
-    # use auto_suggest and redirect to get the correct article
-    # also, use page's error checking to raise DisambiguationError if necessary
-    page_info = page(title, auto_suggest=auto_suggest, redirect=redirect)
-    title = page_info.title
-    pageid = page_info.pageid
+    # get auto_suggest
+    term = check_page(term)
 
     query_params = {
+      'redirects': '',
       'prop': 'extracts',
-      'explaintext': '',
-      'titles': title
+      'titles': term
     }
 
+    if !html
+      query_params['explaintext'] = ''
+    end
+
     if sentences
-      query_params[:exsentences] = sentences
+      query_params[:exsentences] = (sentences > 10 ? 10 : sentences).to_s
     elsif chars
-      query_params[:exchars] = chars
+      query_params[:exchars] = chars.to_s
     else
       query_params[:exintro] = ''
     end
 
     raw_results = fetch(query_params)
-    #request = _wiki_request(query_params)
-    #summary = request['query']['pages'][pageid]['extract']
 
-    #return summary
+    if raw_results['query']['pages'].length > 1
+      raise WikipediaWrapper::MultiplePagesError.new(term, [raw_results['query']['pages'].map { |p, info| info['title']}])
+    elsif raw_results['query']['pages'].length < 1
+      raise WikipediaWrapper::PageError.new(term)
+    else
+      id, info = raw_results['query']['pages'].first
+      summary = info['extract']
+    end
+
+    return summary
   end
 
 
   # Do a Wikipedia search for `query`.
   #
   # @param limit [Integer] the maxmimum number of results returned
-  # @return
-  def search(query, limit: 10)
+  # @param suggestion [Boolean] set to true if you want an autocorrect suggestion
+  # @return #FIXME!
+  def search(term, limit: 10, suggestion: false)
 
     search_params = {
       'list': 'search',
       'srprop': 'snippet',
       'srlimit': limit.to_s,
-      'srsearch': query
+      'srsearch': term
     }
 
     raw_results = fetch(search_params)
-    # FIXME: do proper error handling
-    # if 'error' in raw_results:
-    #   if raw_results['error']['info'] in ('HTTP request timed out.', 'Pool queue is full'):
-    #     raise HTTPTimeoutError(query)
-    #   else:
-    #     raise WikipediaException(raw_results['error']['info'])
 
     results = {}
+
     raw_results['query']['search'].each do |sr|
       results[sr['title']] = sr['snippet'].gsub(/<span .*>(?<term>[^<]*)<\/span>/, '\k<term>')
     end
 
-    return results
+    if suggestion
+      s = raw_results['query']['searchinfo'].key?('suggestion') ? raw_results['query']['searchinfo']['suggestion'] : nil
+      return [results, s]
+    else
+      return results
+    end
 
   end
 
   # Get an autocomplete suggestions for the given query. The query will be used
   # as a prefix. This function uses https://www.mediawiki.org/wiki/API:Opensearch
   #
-  # @param query [String] the term to get the autocompletions for (used as a prefix)
+  # @param term [String] the term to get the autocompletions for (used as a prefix)
   # @param limit [Integer]  the maximum number of results to return (may not exceed 100)
   # @param redirect [Boolean] whether redirects should be followed for suggestions
-  # @return hash of  {'title' => 'description'}
-  def autocomplete(query, limit: 10, redirect: true)
+  # @return hash of  {'title' => 'description'} FIXME!
+  def autocomplete(term, limit: 10, redirect: true)
 
     query_params = {
       'action': 'opensearch',
-      'search': query,
+      'search': term,
       'redirects': redirect ? 'resolve' : 'return',
       'limit': (limit > 100 ? 100 : limit).to_s
     }
@@ -161,7 +155,7 @@ module WikipediaWrapper
     raw_results = fetch(query_params)
 
     if raw_results.length != 4
-      raise WikipediaWrapper::WikipediaError.new("Wrong format for autocomplete: array had length of #{raw_results.length} instead of 4")
+      raise WikipediaWrapper::FormatError.new("autocomplete", "array had length of #{raw_results.length} instead of 4")
     end
 
     num_suggestions = raw_results[1].length - 1
@@ -176,57 +170,35 @@ module WikipediaWrapper
   end
 
 
-  # Retrieve image info for all given image filenames, except for the images in the whitelist
-  # See {http://www.mediawiki.org/wiki/API:Imageinfo}
+
+  # Function to determine whether there is a page with that term. It uses
+  # the search and suggestion functionality to find a possible match
+  # and raises a PagError if no page could be found
   #
-  # @param filenames [Array<String>] list of all filenames
-  # @param width [Integer] optional width of the smaller image (in px)
-  # @param height [Integer] optional height of the smaller image (in px)
-  # @note Only one of width and height can be used at the same time. If both are defined, only width is used.
-  # @return [Array<WikipediaWrapper::WikiImage>] list of images
-  def images(filenames, width: nil, height: nil)
+  # @param term [String] the term for which we want a page
+  # @return [String] the actual title of the page
+  def check_page(term)
 
-    images = []
-
-    if filenames.empty? # there are no filenames, return an empty array
-      return images
+    results, suggestion = search(term, limit: 1, suggestion: true)
+    if !suggestion.nil?
+      return suggestion
+    elsif results.length == 1
+      title, snippet = results.first
+      return title
+    else
+      raise WikipediaWrapper::PageError.new(term)
     end
 
-    filenames = filenames.map { |f| (ImageWhitelist.is_whitelisted? f)  ? nil : f }.compact
-
-    query_parameters = {
-      'titles': filenames.join('|'),
-      'redirects': '',
-      'prop': 'imageinfo',
-      'iiprop': 'url|size|mime',
-    }
-
-    if (!width.nil?)
-      query_parameters[:iiurlwidth] = width
-    elsif (!height.nil?)
-      query_parameters[:iiurlheight] = height
-    end
-
-    raw_results = fetch(query_parameters)
-
-    # check if the proper format is there
-    if raw_results.key?('query') && raw_results['query'].key?('pages')
-      raw_results['query']['pages'].each do |k, main_info|
-
-        wi = WikiImage.new(main_info)
-        if wi.error.nil?
-          images.push(wi)
-        end
-
-      end
-    end
-
-    return images
+    # FIXME: Deal with Disambiguation
 
   end
 
-  private
 
+  # Given the request parameters, params, fetch the response from the API URL
+  # and parse it as JSON. Raise an InvalidRequestError if an error occurrs.
+  #
+  # @param params [Hash] #FIXME
+  # @return #FIXME
   def fetch(params)
 
     # if no action is defined, set it to 'query'
@@ -241,12 +213,18 @@ module WikipediaWrapper
 
     query_part = params.map { |k, v| v.empty? ? "#{k}" : "#{k}=#{v}" }.join("&")
     endpoint_url = URI.encode("#{config.api_url}?#{query_part}")
-    puts endpoint_url
 
-    cache.fetch(endpoint_url) {
+    raw_results = cache.fetch(endpoint_url) {
       f = open(endpoint_url, "User-Agent" => config.user_agent)
       JSON.parse(f.read)
     }
+
+    #
+    if params[:action] != 'opensearch' && raw_results.key?('error')
+      raise WikipediaWrapper::InvalidRequestError.new(endpoint_url, raw_results['error']['info'])
+    end
+
+    return raw_results
 
   end
 

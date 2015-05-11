@@ -43,24 +43,18 @@ class WikipediaWrapperTest < Minitest::Test
     refute_empty wiki_page.images
   end
 
-  def test_autocomplete
-
-    results = WikipediaWrapper.autocomplete('api', limit: 3)
-
-    assert_equal 3, results.length
-    assert results.key? 'Application programming interface'
-    assert results.key? 'Apia'
-    assert results.key? 'Apink'
-
-    assert_equal 'In computer programming, an application programming interface (API) is a set of routines, protocols, and tools for building software applications.', results['Application programming interface']
-    assert_equal 'Apia is the capital and the largest city of Samoa. From 1900 to 1919, it was the capital of the German Samoa.', results['Apia']
-
+  def test_integration_3
+    wiki_page = WikipediaWrapper.page('Yverdons')
+    refute_nil wiki_page
+    refute_empty wiki_page.images
   end
 
-  def test_search
+  def test_error_fetch
+    test_params = {'action': 'blah'}
 
-    results = WikipediaWrapper.search('api', limit: 15)
-    puts results
+    assert_raises WikipediaWrapper::InvalidRequestError do
+      WikipediaWrapper::fetch(test_params)
+    end
 
   end
 

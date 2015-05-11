@@ -14,11 +14,25 @@ module WikipediaWrapper
 
   end
 
+  # Exception raised when the expected return format does not match what was received
+  class FormatError < WikipediaError
+
+    def initialize(function, msg)
+      @func = function
+      @msg = msg
+    end
+
+    def message
+      "Format Error calling \"#{@func}\": #{@msg}"
+    end
+
+  end
+
   # Exception raised when no Wikipedia matched a query.
   class PageError < WikipediaError
 
     def initialize(term, pageid: false)
-      @pageid = page
+      @pageid = pageid
       @term = term
     end
 
@@ -50,6 +64,21 @@ module WikipediaWrapper
     end
 
   end
+
+  # Exception raised when the request is invalid and the server replies with an error
+  class InvalidRequestError < WikipediaError
+
+    def initialize(url, msg)
+      @url = url
+      @msg = msg
+    end
+
+    def message
+      "Invalid Request for URL #{@url}: #{@msg}"
+    end
+
+  end
+
 
 
   # Exception raised when a page resolves to a Disambiguation page.
