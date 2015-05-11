@@ -1,7 +1,6 @@
 require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/image'
 require 'wikipedia_wrapper/image_whitelist'
-require 'wikipedia_wrapper/helper'
 
 module WikipediaWrapper
 

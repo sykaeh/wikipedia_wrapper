@@ -6,7 +6,6 @@ require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/configuration'
 require 'wikipedia_wrapper/page'
 
-
 module WikipediaWrapper
 
   extend self
