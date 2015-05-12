@@ -6,26 +6,34 @@ require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/configuration'
 require 'wikipedia_wrapper/page'
 
+# @author Sybil Ehrensberger <contact@sybil-ehrensberger.com>
 module WikipediaWrapper
 
   extend self
 
+  # @!attribute [r]
+  #   @return [WikipediaWrapper::Configuration] the configuration for this module
   def config
     @config ||= Configuration.new
   end
 
-  # Set up configuration options:
+  # Set up configuration options
   #
-  # WikipediaWrapper.configure do |config|
-  #   config.api_key = 'http://en.wikipedia.org/w/api.php'
-  #   config.user_agent = 'WikipediaWrapper/0.0.1 (http://sykaeh.github.com/wikipedia_wrapper/) Ruby/2.2.1'
-  #   config.default_ttl = 604800
-  # end
+  # @yieldparam config [WikipediaWrapper::Configuration] the configuration instance
+  # @example
+  #   WikipediaWrapper.configure do |config|
+  #     config.api_key = 'http://en.wikipedia.org/w/api.php'
+  #     config.user_agent = 'WikipediaWrapper/0.0.1 (http://sykaeh.github.com/wikipedia_wrapper/) Ruby/2.2.1'
+  #     config.default_ttl = 604800
+  #   end
   def configure
     @config ||= Configuration.new
     yield(config)
   end
 
+  # Retrieve the cache for this module if it is already defined, otherwise
+  # create a new Cache, defaulting to an in-memory cache
+  # @return [Cache] the cache
   def cache
     if @cache.nil?
       @cache = Cache.new
@@ -34,6 +42,16 @@ module WikipediaWrapper
     @cache
   end
 
+
+  # Define the caching client
+  # @example
+  #   WikipediaWrapper.cache(Memcached.new('127.0.0.1:11211', :binary_protocol => true))
+  #   WikipediaWrapper.cache(Dalli::Client.new)
+  #   WikipediaWrapper.cache(Redis.new)
+  #   WikipediaWrapper.cache(Rails.new)
+  # @see https://github.com/seamusabshere/cache Cache Gem Configuration
+  # @param raw_client [Memcached, Dalli::Client, Redis, memcache-client] a caching client (Memcached, Dalli, memcache-client, redis)
+  # @param timeout [Integer] default timeout for the cache entries [in seconds]
   def cache=(raw_client, timeout: config.default_ttl)
     @cache = Cache.wrap(raw_client)
     @cache.config.default_ttl = timeout
@@ -52,16 +70,18 @@ module WikipediaWrapper
       term = check_page(term)
     end
 
-    return WikipediaWrapper::Page.new(term, redirect)
+    return WikipediaWrapper::Page.new(term, redirect: redirect)
 
   end
 
   # Plain text or basic HTML summary of the page. Redirects are always followed
-  # automatically
+  # automatically.
   #
   # @note This is a convenience wrapper - auto_suggest and redirect are enabled by default
   #
-  # @param title [String] the title of the page
+  # @raise [WikipediaWrapper::PageError] if no page with that term was found
+  # @raise [WikipediaWrapper::MultiplePagesError] if more than one page with that term was found
+  # @param term [String] the title of the page
   # @param html [Boolean] if true, return basic HTML instead of plain text
   # @param sentences [Integer] if set, return the first `sentences` sentences (can be no greater than 10).
   # @param chars [Integer] if set, return only the first `chars` characters (actual text returned may be slightly longer).
@@ -104,11 +124,17 @@ module WikipediaWrapper
   end
 
 
-  # Do a Wikipedia search for `query`.
+  # Do a Wikipedia search for the given term
   #
   # @param limit [Integer] the maxmimum number of results returned
   # @param suggestion [Boolean] set to true if you want an autocorrect suggestion
-  # @return #FIXME!
+  # @return [{String => String}] if suggestion is false, return a Hash of the suggestions
+  #   (as keys) and a snippet of the search result as values
+  # @return [Array<{String => String}, <String, nil>>] if suggestion is true,
+  #   return return a Hash of the suggestions
+  #   (as keys) and a snippet of the search result as values in the first position of
+  #   the array and in the second position a proposed suggestion or nil if there
+  #   was no suggestion
   def search(term, limit: 10, suggestion: false)
 
     search_params = {
@@ -135,13 +161,16 @@ module WikipediaWrapper
 
   end
 
-  # Get an autocomplete suggestions for the given query. The query will be used
-  # as a prefix. This function uses https://www.mediawiki.org/wiki/API:Opensearch
-  #
+  # Get an autocomplete suggestions for the given term. The term will be used
+  # as a prefix.
+
+  # @see https://www.mediawiki.org/wiki/API:Opensearch MediaWiki API
+  # @raise [WikipediaWrapper::FormatError] if an unknown format is encountered in the response
   # @param term [String] the term to get the autocompletions for (used as a prefix)
   # @param limit [Integer]  the maximum number of results to return (may not exceed 100)
   # @param redirect [Boolean] whether redirects should be followed for suggestions
-  # @return hash of  {'title' => 'description'} FIXME!
+  # @return [Hash{String=>String}] a hash where the keys are the titles of the articles and
+  #   the values are a short description of the page
   def autocomplete(term, limit: 10, redirect: true)
 
     query_params = {
@@ -172,8 +201,10 @@ module WikipediaWrapper
 
   # Function to determine whether there is a page with that term. It uses
   # the search and suggestion functionality to find a possible match
-  # and raises a PagError if no page could be found
+  # and raises a PageError if no page could be found.
   #
+  # @todo Deal with Disambiguation Pages
+  # @raise [WikipediaWrapper::PageError] if no page with that term could be found
   # @param term [String] the term for which we want a page
   # @return [String] the actual title of the page
   def check_page(term)
@@ -196,8 +227,11 @@ module WikipediaWrapper
   # Given the request parameters, params, fetch the response from the API URL
   # and parse it as JSON. Raise an InvalidRequestError if an error occurrs.
   #
-  # @param params [Hash] #FIXME
-  # @return #FIXME
+  # @raise [WikipediaWrapper::InvalidRequestError] if the request was invalid
+  #   or another error occurrs
+  # @param params [Hash{Symbol => String}] hash of the properties that should
+  #   be added to the request URL
+  # @return [Hash] the JSON response of the server converted in to a hash
   def fetch(params)
 
     # if no action is defined, set it to 'query'

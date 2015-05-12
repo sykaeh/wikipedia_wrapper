@@ -15,10 +15,14 @@ module WikipediaWrapper
         raise WikipediaWrapper::FormatError.new('WikiImage initialize', "Unknown format for imageinfo: #{raw_info}")
       end
 
+      @filename = (raw_info.key? 'title') ? raw_info['title'].sub('File:', '') : 'No name'
+
       data = {
-        'name': (raw_info.key? 'title') ? raw_info['title'].sub('File:', '') : 'No name',
+        'name': @filename,
         'mime': raw_info['imageinfo'][0]['mime'],
       }
+
+
 
       @normal = Image.new(raw_info['imageinfo'][0]['url'],
                          raw_info['imageinfo'][0]['width'].to_i,
@@ -36,6 +40,10 @@ module WikipediaWrapper
 
     end
 
+    def to_s
+      "WikiImage #{@filename}"
+    end
+
   end
 
   class Image
@@ -50,6 +58,10 @@ module WikipediaWrapper
       @height = data[:height] || 0
       @width = data[:width] || 0
 
+    end
+
+    def to_s
+      "Image: #{@name} (#{@url})"
     end
 
   end
