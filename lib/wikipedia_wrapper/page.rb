@@ -110,17 +110,17 @@ module WikipediaWrapper
       raw_results = WikipediaWrapper.fetch(query_parameters)
 
       if raw_results['query']['pages'].length > 1
-        raise WikipediaWrapper::MultiplePagesError.new(raw_results['query']['pages'].map { |p| p['title'] }, search_term)
+        raise WikipediaWrapper::MultiplePagesError.new(raw_results['query']['pages'].map { |p| p['title'] }, @term)
       end
 
       if raw_results['query']['pages'].length == 0
-        raise WikipediaWrapper::PageError.new(search_term)
+        raise WikipediaWrapper::PageError.new(@term)
       end
 
       page = nil
       key, page_info = raw_results['query']['pages'].first
       if key == '-1'
-        raise WikipediaWrapper::PageError.new(search_term)
+        raise WikipediaWrapper::PageError.new(@term)
       end
       @raw = page_info
 
