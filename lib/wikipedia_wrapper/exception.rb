@@ -102,13 +102,12 @@ module WikipediaWrapper
   # @note `options` does not include titles that do not link to a valid Wikipedia page.
   class DisambiguationError < WikipediaError
 
-    def initialize(title, may_refer_to)
+    def initialize(title)
       @title = title
-      @options = may_refer_to
     end
 
     def message
-      "\"#{@title}\" may refer to: \n#{@options.join(', ')}"
+      "\"#{@title}\" may refer to several different things."
     end
 
   end

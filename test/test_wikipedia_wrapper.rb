@@ -3,33 +3,15 @@ require 'wikipedia_wrapper'
 
 class WikipediaWrapperTest < Minitest::Test
 
-  def test_wikipedia_wrapper_config
-
-    # Default config
-    assert_equal nil, WikipediaWrapper.config.img_height
-
-    # Config from config block
-    WikipediaWrapper.configure do |config|
-      config.img_height = 600
-    end
-    assert_equal 600, WikipediaWrapper.config.img_height
-
-    # Test resetting of config
-    WikipediaWrapper.config.reset
-    assert_equal nil, WikipediaWrapper.config.img_height
-
-    # Test setting config properties directly
-    WikipediaWrapper.config.img_height = 700
-    assert_equal 700, WikipediaWrapper.config.img_height
-
-    # Overwrite config with a config block
-    WikipediaWrapper.configure do |config|
-      config.img_height = 600
-    end
-    assert_equal 600, WikipediaWrapper.config.img_height
-
+  def setup
+    WikipediaWrapper.cache.clear
   end
 
+  def test_disambiguation
+    assert_raises WikipediaWrapper::DisambiguationError do
+      wiki_page = WikipediaWrapper.page('Georgia')
+    end
+  end
 
   def test_integration
     wiki_page = WikipediaWrapper.page('Opfikon')
@@ -43,7 +25,7 @@ class WikipediaWrapperTest < Minitest::Test
     refute_empty wiki_page.images
   end
 
-  def test_integration_3
+  def test_integration_3 # uses the check_page (since it would be Yverdon, not Yverdons)
     wiki_page = WikipediaWrapper.page('Yverdons')
     refute_nil wiki_page
     refute_empty wiki_page.images

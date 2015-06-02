@@ -1,7 +1,5 @@
-require 'uri'
-require 'open-uri'
-require 'json'
 require 'cache'
+require 'wikipedia_wrapper/util'
 require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/configuration'
 require 'wikipedia_wrapper/page'
@@ -93,8 +91,9 @@ module WikipediaWrapper
 
     query_params = {
       'redirects': '',
-      'prop': 'extracts',
-      'titles': term
+      'prop': 'extracts|pageprops',
+      'titles': term,
+      'ppprop': 'disambiguation',
     }
 
     if !html
@@ -110,15 +109,10 @@ module WikipediaWrapper
     end
 
     raw_results = fetch(query_params)
+    check_results(term, raw_results)
 
-    if raw_results['query']['pages'].length > 1
-      raise WikipediaWrapper::MultiplePagesError.new(term, [raw_results['query']['pages'].map { |p, info| info['title']}])
-    elsif raw_results['query']['pages'].length < 1
-      raise WikipediaWrapper::PageError.new(term)
-    else
-      id, info = raw_results['query']['pages'].first
-      summary = info['extract']
-    end
+    id, info = raw_results['query']['pages'].first
+    summary = info['extract']
 
     return summary
   end
@@ -126,7 +120,7 @@ module WikipediaWrapper
 
   # Do a Wikipedia search for the given term
   #
-  # @param limit [Integer] the maxmimum number of results returned
+  # @param limit [Integer] the maximimum number of results returned
   # @param suggestion [Boolean] set to true if you want an autocorrect suggestion
   # @return [{String => String}] if suggestion is false, return a Hash of the suggestions
   #   (as keys) and a snippet of the search result as values
@@ -198,12 +192,10 @@ module WikipediaWrapper
   end
 
 
-
   # Function to determine whether there is a page with that term. It uses
   # the search and suggestion functionality to find a possible match
   # and raises a PageError if no page could be found.
   #
-  # @todo Deal with Disambiguation Pages
   # @raise [WikipediaWrapper::PageError] if no page with that term could be found
   # @param term [String] the term for which we want a page
   # @return [String] the actual title of the page
@@ -218,46 +210,6 @@ module WikipediaWrapper
     else
       raise WikipediaWrapper::PageError.new(term)
     end
-
-    # FIXME: Deal with Disambiguation
-
-  end
-
-
-  # Given the request parameters, params, fetch the response from the API URL
-  # and parse it as JSON. Raise an InvalidRequestError if an error occurrs.
-  #
-  # @raise [WikipediaWrapper::InvalidRequestError] if the request was invalid
-  #   or another error occurrs
-  # @param params [Hash{Symbol => String}] hash of the properties that should
-  #   be added to the request URL
-  # @return [Hash] the JSON response of the server converted in to a hash
-  def fetch(params)
-
-    # if no action is defined, set it to 'query'
-    if !params.key?(:action)
-      params[:action] = 'query'
-    end
-
-    params[:format] = 'json' # always return json format
-
-    # FIXME: deal with continuation
-    #params[:continue] = '' # does not work for autocomplete
-
-    query_part = params.map { |k, v| v.empty? ? "#{k}" : "#{k}=#{v}" }.join("&")
-    endpoint_url = URI.encode("#{config.api_url}?#{query_part}")
-
-    raw_results = cache.fetch(endpoint_url) {
-      f = open(endpoint_url, "User-Agent" => config.user_agent)
-      JSON.parse(f.read)
-    }
-
-    #
-    if params[:action] != 'opensearch' && raw_results.key?('error')
-      raise WikipediaWrapper::InvalidRequestError.new(endpoint_url, raw_results['error']['info'])
-    end
-
-    return raw_results
 
   end
 

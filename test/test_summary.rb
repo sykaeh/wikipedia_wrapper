@@ -3,6 +3,16 @@ require 'wikipedia_wrapper'
 
 class WikipediaWrapperTest < Minitest::Test
 
+  def setup
+    WikipediaWrapper.cache.clear
+  end
+
+  def test_disambiguation
+    assert_raises WikipediaWrapper::DisambiguationError do
+      wiki_page = WikipediaWrapper.summary('Georgia')
+    end
+  end
+
   def test_basic_plaintext_intro
 
     summary = WikipediaWrapper.summary('Earth')
@@ -14,7 +24,7 @@ class WikipediaWrapperTest < Minitest::Test
   def test_basic_plaintext_sentences
 
     summary = WikipediaWrapper.summary('Earth', sentences: 5)
-    assert_equal "Earth, also called the world and, less frequently, Gaia (and Terra in some works of science fiction) is the third planet from the Sun, the densest planet in the Solar System, the largest of the Solar System's four terrestrial planets, and the only astronomical object known to accommodate life. The earliest life on Earth arose at least 3.5 billion years ago. Earth's biodiversity has expanded continually except when interrupted by mass extinctions. Although scholars estimate that over 99 percent of all species that ever lived on the planet are extinct, Earth is currently home to 10\u201314 million species of life, including over 7.3 billion humans who depend upon its biosphere and minerals. Earth's human population is divided among about two hundred sovereign states which interact through diplomacy, conflict, travel, trade and communication media.", summary
+    assert_equal "Earth, also called the world and, less frequently, Gaia (and Terra in some works of science fiction) is the third planet from the Sun, the densest planet in the Solar System, the largest of the Solar System's four terrestrial planets, and the only astronomical object known to accommodate life. The earliest life on Earth arose at least 3.5 billion years ago. Earth's biodiversity has expanded continually except when interrupted by mass extinctions. Although scholars estimate that over 99 percent of all species, amounting to over five billion species, that ever lived on the planet are extinct, Earth is currently home to 10–14 million species of life, of which about 1.2 million have been documented and over 90 percent await description. Over 7.3 billion humans depend upon its biosphere and minerals.", summary
 
   end
 

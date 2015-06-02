@@ -1,5 +1,6 @@
 require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/image'
+require 'wikipedia_wrapper/util'
 
 module WikipediaWrapper
 
@@ -15,7 +16,6 @@ module WikipediaWrapper
       @img_width = WikipediaWrapper.config.img_width
       @img_height = WikipediaWrapper.config.img_height
 
-      # FIXME: Deal with disambiguation sites
       # FIXME: Deal with continuation
 
       # FIXME: deal with redirect false!
@@ -106,29 +106,19 @@ module WikipediaWrapper
     def load_page
 
       query_parameters = {
-        'prop': 'revisions|info|extracts|images',
+        'prop': 'revisions|info|extracts|images|pageprops',
         'titles': @term,
         'redirects': '',
         'rvprop': 'content',
         'inprop': 'url',
         'exintro': '',
+        'ppprop': 'disambiguation',
       }
 
       raw_results = WikipediaWrapper.fetch(query_parameters)
+      WikipediaWrapper.check_results(@term, raw_results)
 
-      if raw_results['query']['pages'].length > 1
-        raise WikipediaWrapper::MultiplePagesError.new(raw_results['query']['pages'].map { |p| p['title'] }, @term)
-      end
-
-      if raw_results['query']['pages'].length == 0
-        raise WikipediaWrapper::PageError.new(@term)
-      end
-
-      page = nil
       key, page_info = raw_results['query']['pages'].first
-      if key == '-1'
-        raise WikipediaWrapper::PageError.new(@term)
-      end
       @raw = page_info
 
       @page_id = page_info['pageid']
