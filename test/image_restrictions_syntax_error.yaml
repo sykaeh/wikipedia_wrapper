@@ -1,0 +1,16 @@
+---
+  allowed_endings: # leave blank to allow all endings
+    - .png
+    - .jpg
+
+  exclude_endings: # is only considered if allowed_endings is blank
+    - .ogg
+
+  exclude_files
+    - File:Commons-logo.svg
+    - File:Wiktionary-logo-en.svg
+    - File:Edit-clear.svg
+    - File:Disambig gray.svg
+
+  exclude_partials
+    - arms

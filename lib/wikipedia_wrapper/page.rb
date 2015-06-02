@@ -1,6 +1,5 @@
 require 'wikipedia_wrapper/exception'
 require 'wikipedia_wrapper/image'
-require 'wikipedia_wrapper/image_whitelist'
 
 module WikipediaWrapper
 
@@ -13,8 +12,8 @@ module WikipediaWrapper
       @term = term
       @redirect = redirect
       @images = nil
-      @img_width = nil
-      @img_height = nil
+      @img_width = WikipediaWrapper.config.img_width
+      @img_height = WikipediaWrapper.config.img_height
 
       # FIXME: Deal with disambiguation sites
       # FIXME: Deal with continuation
@@ -44,6 +43,14 @@ module WikipediaWrapper
       # if we haven't retrieved any images or the width or height have changed, re-fetch
       if @images.nil? || (!width.nil? && @img_width != width) || (!width.nil? && @img_width != width)
 
+        unless width.nil?
+          @img_width = width
+        end
+
+        unless height.nil?
+          @img_height = height
+        end
+
         @images = []
 
         # deal with the case that a page has no images
@@ -58,7 +65,7 @@ module WikipediaWrapper
         end
 
         # exclude whitelisted filenames
-        filenames = filenames.map { |f| (ImageWhitelist.is_whitelisted? f)  ? nil : f }.compact
+        filenames = filenames.map { |f| (WikipediaWrapper.config.image_allowed? f)  ? nil : f }.compact
 
         query_parameters = {
           'titles': filenames.join('|'),

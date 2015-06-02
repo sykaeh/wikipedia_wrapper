@@ -14,6 +14,19 @@ module WikipediaWrapper
 
   end
 
+  # Exception raised when there is a problem with the configuration
+  class ConfigurationError < WikipediaError
+
+    def initialize(msg)
+      @msg = msg
+    end
+
+    def message
+      "#{@msg}"
+    end
+
+  end
+
   # Exception raised when the expected return format does not match what was received
   class FormatError < WikipediaError
 

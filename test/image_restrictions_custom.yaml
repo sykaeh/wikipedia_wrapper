@@ -1,0 +1,11 @@
+---
+  allowed_endings: # leave blank to allow all endings
+    - .txt
+
+  exclude_files:
+    - myfile.txt
+    - otherfile.txt
+    - spaced file.txt
+
+  exclude_partials:
+    - something
