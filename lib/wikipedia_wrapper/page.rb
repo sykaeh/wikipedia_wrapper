@@ -65,7 +65,7 @@ module WikipediaWrapper
         end
 
         # exclude whitelisted filenames
-        filenames = filenames.map { |f| (WikipediaWrapper.config.image_allowed? f)  ? nil : f }.compact
+        filenames = filenames.map { |f| WikipediaWrapper.config.image_allowed?(f) ? f : nil }.compact
 
         query_parameters = {
           'titles': filenames.join('|'),

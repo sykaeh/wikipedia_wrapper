@@ -38,15 +38,16 @@ To use this gem you do not need to specify configuration options, but you can. T
 
 ```ruby
 WikipediaWrapper.configure do |config|
-  config.api_key = 'http://en.wikipedia.org/w/api.php'
+  config.lang = 'en'
   config.user_agent = 'WikipediaWrapper/0.0.1 (http://sykaeh.github.com/wikipedia_wrapper/) Ruby/2.2.1'
   config.default_ttl = 604800
+  # additional config options are: image_restrictions, img_height, img_width
 end
 
 WikipediaWrapper.cache(Memcached.new('127.0.0.1:11211', :binary_protocol => true)) # or
 WikipediaWrapper.cache(Dalli::Client.new) # or
 WikipediaWrapper.cache(Redis.new) # or
-WikipediaWrapper.cache(Rails.new)
+WikipediaWrapper.cache(Rails.cache)
 ```
 
 ### Autocomplete suggestions

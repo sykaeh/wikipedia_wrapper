@@ -3,7 +3,8 @@ require 'yaml'
 module WikipediaWrapper
 
   class Configuration
-    attr_accessor :lang, :api_url, :user_agent, :default_ttl, :img_width, :img_height
+    attr_accessor :lang, :user_agent, :default_ttl, :img_width, :img_height
+    attr_reader :api_url
 
     # Initialize the configuration with some sensible defaults
     def initialize
@@ -14,6 +15,11 @@ module WikipediaWrapper
     def reset
       set_defaults
       @image_restrictions = nil
+    end
+
+    def lang=(lang_code)
+      @lang = lang_code
+      @api_url = "http://#{@lang}.wikipedia.org/w/api.php"
     end
 
     def image_restrictions
@@ -40,8 +46,7 @@ module WikipediaWrapper
     private
 
     def set_defaults
-      @lang = 'en'
-      @api_url = "http://#{@lang}.wikipedia.org/w/api.php"
+      self.lang = 'en'
       @user_agent = 'WikipediaWrapper/0.1 (http://sykaeh.github.com/wikipedia_wrapper/; wikipedia_wrapper@sybil-ehrensberger.com) Ruby/2.2.1'
       @default_ttl = 7*24*60*60
       @img_height = nil
