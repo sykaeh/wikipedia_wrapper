@@ -19,7 +19,7 @@ module WikipediaWrapper
 
     def lang=(lang_code)
       @lang = lang_code
-      @api_url = "http://#{@lang}.wikipedia.org/w/api.php"
+      @api_url = "https://#{@lang}.wikipedia.org/w/api.php"
     end
 
     def image_restrictions
