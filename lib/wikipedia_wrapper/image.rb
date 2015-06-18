@@ -4,7 +4,7 @@ module WikipediaWrapper
 
   class WikiImage
 
-    attr_accessor :small, :normal
+    attr_accessor :small, :normal, :description_url
 
     def initialize(raw_info)
 
@@ -22,7 +22,7 @@ module WikipediaWrapper
         'mime': raw_info['imageinfo'][0]['mime'],
       }
 
-
+      @description_url = raw_info['imageinfo'][0]['descriptionurl']
 
       @normal = Image.new(raw_info['imageinfo'][0]['url'],
                          raw_info['imageinfo'][0]['width'].to_i,
