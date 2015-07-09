@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.date        = Date.today.to_s
   s.summary     = "WikipediaWrapper retrieves information about a place from Wikipedia"
-  s.description = "A simple hello world gem"
+  s.description = "WikipediaWrapper is a ruby gem that extracts information from Wikipedia and makes the information available in an easy-to-use API. All information is extracted using the Wikipedia/MediaWiki API."
   s.authors     = ["Sybil Ehrensberger"]
   s.email       = 'contact@sybil-ehrensberger.com'
   s.files       = Dir['CHANGELOG.md', 'LICENSE', 'README.md', 'examples/*', 'lib/**/*', 'bin/*']
